@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Sidebar from './components/Sidebar';
 import CanvasArea from './components/CanvasArea';
+import Footer from './components/Footer';
 import './App.css';
+
+const MAX_HISTORY = 20;
 
 function App() {
   const [title, setTitle] = useState(() => {
@@ -13,8 +16,10 @@ function App() {
     return saved ? JSON.parse(saved) : [];
   });
 
-  const [selectedTool, setSelectedTool] = useState('pointer');
+  const [past, setPast] = useState([]);
+  const [future, setFuture] = useState([]);
 
+  const [selectedTool, setSelectedTool] = useState('pointer');
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -25,20 +30,59 @@ function App() {
     localStorage.setItem('shapes', JSON.stringify(shapes));
   }, [shapes]);
 
+  const pushToHistory = prevShapes => {
+    setPast(p => {
+      const next = [...p, prevShapes];
+      if (next.length > MAX_HISTORY) {
+        return next.slice(1);
+      }
+      return next;
+    });
+  };
+
   const handleAddShape = (shapeType, x = 50, y = 50) => {
-    const newShape = {
-      id: Date.now(),
-      type: shapeType,
-      x,
-      y
-    };
+    pushToHistory(shapes);
+    setFuture([]);
+    const newShape = { id: Date.now(), type: shapeType, x, y };
     setShapes(prev => [...prev, newShape]);
   };
 
   const handleRemoveShape = id => {
+    pushToHistory(shapes);
+    setFuture([]);
     setShapes(prev => prev.filter(s => s.id !== id));
   };
 
+  const handleMoveStart = () => {
+    pushToHistory(shapes);
+    setFuture([]);
+  };
+
+  const handleMoveShape = (id, newX, newY) => {
+    setShapes(prev =>
+      prev.map(s => (s.id === id ? { ...s, x: newX, y: newY } : s))
+    );
+  };
+
+  // Undo
+  const handleUndo = () => {
+    if (past.length === 0) return;
+    const previous = past[past.length - 1];
+    setPast(p => p.slice(0, p.length - 1));
+    setFuture(f => [...f, shapes]);
+    setShapes(previous);
+  };
+
+  // Redo
+  const handleRedo = () => {
+    if (future.length === 0) return;
+    const next = future[future.length - 1];
+    setFuture(f => f.slice(0, f.length - 1));
+    setPast(p => [...p, shapes]);
+    setShapes(next);
+  };
+
+  // Export
   const handleExport = () => {
     const data = { title, shapes };
     const json = JSON.stringify(data, null, 2);
@@ -46,48 +90,39 @@ function App() {
     const url = URL.createObjectURL(blob);
 
     let fileName = title.trim() === '' ? 'untitled' : title.trim();
-
     fileName = fileName
       .replace(/[\s\/\\:\*\?"<>\|]+/g, '_')
       .replace(/^_+|_+$/g, '');
-
-    if (fileName === '') {
-      fileName = 'untitled';
-    }
+    if (fileName === '') fileName = 'untitled';
     fileName += '.json';
 
     const a = document.createElement('a');
     a.href = url;
     a.download = fileName;
     a.click();
-
     URL.revokeObjectURL(url);
   };
 
   const handleImportClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
+    if (fileInputRef.current) fileInputRef.current.click();
   };
 
   const handleFileChange = e => {
     const file = e.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = ev => {
       try {
         const data = JSON.parse(ev.target.result);
-        if (
-          typeof data.title === 'string' &&
-          Array.isArray(data.shapes)
-        ) {
+        if (typeof data.title === 'string' && Array.isArray(data.shapes)) {
           setTitle(data.title);
+          setPast([]);
+          setFuture([]);
           setShapes(data.shapes);
         } else {
           alert('File format is incorrect.');
         }
-      } catch (err) {
+      } catch {
         alert('File read was unsuccessful.');
       }
     };
@@ -106,6 +141,20 @@ function App() {
         />
 
         <div className="header-buttons">
+          <button
+            className="btn"
+            onClick={handleUndo}
+            disabled={past.length === 0}
+          >
+            Undo
+          </button>
+          <button
+            className="btn"
+            onClick={handleRedo}
+            disabled={future.length === 0}
+          >
+            Redo
+          </button>
           <button className="btn" onClick={handleExport}>
             Export
           </button>
@@ -133,29 +182,12 @@ function App() {
           selectedTool={selectedTool}
           onAddShape={handleAddShape}
           onRemoveShape={handleRemoveShape}
+          onMoveStart={handleMoveStart}
+          onMoveShape={handleMoveShape}
         />
       </div>
 
-      <footer className="footer">
-        <div className="footer-item">
-          <span className="shape-icon circle" />
-          <span className="count">
-            {shapes.filter(s => s.type === 'circle').length}
-          </span>
-        </div>
-        <div className="footer-item">
-          <span className="shape-icon square" />
-          <span className="count">
-            {shapes.filter(s => s.type === 'square').length}
-          </span>
-        </div>
-        <div className="footer-item">
-          <span className="shape-icon triangle" />
-          <span className="count">
-            {shapes.filter(s => s.type === 'triangle').length}
-          </span>
-        </div>
-      </footer>
+      <Footer shapes={shapes} />
     </div>
   );
 }

@@ -1,4 +1,3 @@
-// src/components/Footer.js
 import React from 'react';
 
 export default function Footer({ shapes }) {
@@ -11,6 +10,7 @@ export default function Footer({ shapes }) {
   );
 
   const types = ['circle', 'square', 'triangle'];
+  const total = shapes.length;
 
   return (
     <footer className="footer">
@@ -20,6 +20,11 @@ export default function Footer({ shapes }) {
           <span className="count">{counts[type]}</span>
         </div>
       ))}
+
+      <div className="footer-item total">
+        <span className="count">{total}</span>
+        <span className="count">Total</span>
+      </div>
     </footer>
   );
 }
