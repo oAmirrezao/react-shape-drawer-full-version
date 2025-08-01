@@ -9,7 +9,6 @@ const sequelize = new Sequelize({
 const User = require('./user')(sequelize);
 const Painting = require('./painting')(sequelize);
 
-// یک به یک
 User.hasOne(Painting, { foreignKey: 'userId', onDelete: 'CASCADE' });
 Painting.belongsTo(User, { foreignKey: 'userId' });
 
