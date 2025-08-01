@@ -147,6 +147,12 @@ SELECT * FROM Paintings;
 ---
 
 تصاویر تست‌کردن آیتم‌های جدید(یعنی گزینه‌های save to server و load from server را می‌توانید در اینجا مشاهده بفرمایید.
-<img width="1855" height="962" alt="save_to_server_test1" src="https://github.com/user-attachments/assets/4e883e86-02fe-46b2-bc01-bf7a1b5ea429" />
-<img width="1857" height="963" alt="load_from_server1" src="https://github.com/user-attachments/assets/f776d433-9d4d-43eb-bfbc-161178e1edee" />
+save to server:
+<img width="1855" height="962" alt="save_to_server_test1" src="https://github.com/user-attachments/assets/cbb86502-c695-4a80-89bd-856a70d27db9" />
+<img width="1856" height="962" alt="save_to_server_test2" src="https://github.com/user-attachments/assets/704b178f-1f01-4fca-a788-81600fca6b89" />
+<img width="1437" height="150" alt="save_to_server_test3" src="https://github.com/user-attachments/assets/4b249ad6-9b65-47fe-80ca-41df6846d6a4" />
+load from server:
+<img width="1857" height="963" alt="load_from_server1" src="https://github.com/user-attachments/assets/c6ef46ac-4139-4cfe-95a4-2c9fa7182199" />
+<img width="1860" height="957" alt="load_from_server2" src="https://github.com/user-attachments/assets/ca4f26e7-93c8-4631-8f09-bf320525dd6a" />
+<img width="1420" height="22" alt="load_from_server3" src="https://github.com/user-attachments/assets/de8aee56-44c4-446b-8973-c38512158140" />
 
