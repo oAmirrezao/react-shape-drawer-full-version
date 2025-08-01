@@ -95,7 +95,7 @@ npm start
 curl -X POST http://localhost:5000/users \
   -H "Content-Type: application/json" \
   -d '{"name":"testuser"}'
-
+```
 پاسخ نمونه:
 json
 { "id": 1, "name": "testuser" }
@@ -114,7 +114,6 @@ curl -X POST http://localhost:5000/paintings/1 \
 
 ### واکشی نقاشی‌ها
 
-bash
 curl http://localhost:5000/paintings/1
 
 - پاسخ باید آرایه‌ای از همه‌ی نقاشی‌های کاربر باشد.
