@@ -1,12 +1,16 @@
+// src/App.js
 import React, { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
 import Sidebar from './components/Sidebar';
 import CanvasArea from './components/CanvasArea';
 import Footer from './components/Footer';
 import './App.css';
 
+const API_URL    = 'http://localhost:5000';
 const MAX_HISTORY = 20;
 
 function App() {
+  //── وضعیت نقاشی (محلی) ─────────────────────────
   const [title, setTitle] = useState(() => {
     return localStorage.getItem('paintingTitle') || '';
   });
@@ -16,12 +20,18 @@ function App() {
     return saved ? JSON.parse(saved) : [];
   });
 
-  const [past, setPast] = useState([]);
+  const [past, setPast]     = useState([]);
   const [future, setFuture] = useState([]);
 
+  //── ابزار انتخابی و مرجع فایل ایمپورت ───────────
   const [selectedTool, setSelectedTool] = useState('pointer');
   const fileInputRef = useRef(null);
 
+  //── وضعیت کاربر (برای Save/Load سرور) ─────────
+  const [userId,   setUserId]   = useState(localStorage.getItem('userId'));
+  const [userName, setUserName] = useState(localStorage.getItem('userName') || '');
+
+  //── هم‌زمان‌سازی با localStorage ───────────────
   useEffect(() => {
     localStorage.setItem('paintingTitle', title);
   }, [title]);
@@ -30,13 +40,32 @@ function App() {
     localStorage.setItem('shapes', JSON.stringify(shapes));
   }, [shapes]);
 
+  //── ثبت‌نام خودکار یا بازیابی کاربر ────────────
+  useEffect(() => {
+    if (!userId) {
+      const name = prompt('لطفاً نام خود را وارد کنید:');
+      if (!name) return alert('نام کاربری لازم است.');
+
+      axios.post(`${API_URL}/users`, { name })
+        .then(res => res.data)
+        .then(data => {
+          setUserId(data.id);
+          setUserName(data.name);
+          localStorage.setItem('userId', data.id);
+          localStorage.setItem('userName', data.name);
+        })
+        .catch(err => {
+          console.error(err);
+          alert('خطا در ثبت‌نام کاربر');
+        });
+    }
+  }, [userId]);
+
+  //── تاریخچه (Undo/Redo) ─────────────────────────
   const pushToHistory = prevShapes => {
     setPast(p => {
       const next = [...p, prevShapes];
-      if (next.length > MAX_HISTORY) {
-        return next.slice(1);
-      }
-      return next;
+      return next.length > MAX_HISTORY ? next.slice(1) : next;
     });
   };
 
@@ -64,7 +93,6 @@ function App() {
     );
   };
 
-  // Undo
   const handleUndo = () => {
     if (past.length === 0) return;
     const previous = past[past.length - 1];
@@ -73,7 +101,6 @@ function App() {
     setShapes(previous);
   };
 
-  // Redo
   const handleRedo = () => {
     if (future.length === 0) return;
     const next = future[future.length - 1];
@@ -82,7 +109,7 @@ function App() {
     setShapes(next);
   };
 
-  // Export
+  //── Export / Import محلی ────────────────────────
   const handleExport = () => {
     const data = { title, shapes };
     const json = JSON.stringify(data, null, 2);
@@ -93,7 +120,7 @@ function App() {
     fileName = fileName
       .replace(/[\s\/\\:\*\?"<>\|]+/g, '_')
       .replace(/^_+|_+$/g, '');
-    if (fileName === '') fileName = 'untitled';
+    if (!fileName) fileName = 'untitled';
     fileName += '.json';
 
     const a = document.createElement('a');
@@ -104,7 +131,7 @@ function App() {
   };
 
   const handleImportClick = () => {
-    if (fileInputRef.current) fileInputRef.current.click();
+    fileInputRef.current?.click();
   };
 
   const handleFileChange = e => {
@@ -120,16 +147,40 @@ function App() {
           setFuture([]);
           setShapes(data.shapes);
         } else {
-          alert('File format is incorrect.');
+          alert('فرمت فایل صحیح نیست.');
         }
       } catch {
-        alert('File read was unsuccessful.');
+        alert('خطا در خواندن فایل.');
       }
     };
     reader.readAsText(file);
     e.target.value = null;
   };
 
+  //── Save to Server / Load from Server ───────────
+  const saveToServer = () => {
+    if (!userId) return alert('کاربر ثبت نشده.');
+    axios.post(`${API_URL}/paintings/${userId}`, { title, shapes })
+      .then(res => res.data)
+      .then(json => alert(json.message || 'ذخیره شد.'))
+      .catch(err => alert('خطا در ذخیره: ' + err.message));
+  };
+
+  const loadFromServer = () => {
+    if (!userId) return alert('کاربر ثبت نشده.');
+    axios.get(`${API_URL}/paintings/${userId}`)
+      .then(res => res.data)
+      .then(data => {
+        setTitle(data.title);
+        setShapes(data.shapes);
+      })
+      .catch(err => {
+        const msg = err.response?.data?.message || err.message;
+        alert('خطا در بارگذاری: ' + msg);
+      });
+  };
+
+  //── رندر UI ────────────────────────────────────
   return (
     <div className="App">
       <header className="header">
@@ -141,18 +192,10 @@ function App() {
         />
 
         <div className="header-buttons">
-          <button
-            className="btn"
-            onClick={handleUndo}
-            disabled={past.length === 0}
-          >
+          <button className="btn" onClick={handleUndo} disabled={past.length === 0}>
             Undo
           </button>
-          <button
-            className="btn"
-            onClick={handleRedo}
-            disabled={future.length === 0}
-          >
+          <button className="btn" onClick={handleRedo} disabled={future.length === 0}>
             Redo
           </button>
           <button className="btn" onClick={handleExport}>
@@ -168,6 +211,14 @@ function App() {
             style={{ display: 'none' }}
             onChange={handleFileChange}
           />
+
+          {/* دکمه‌های Save/Load به سرور */}
+          <button className="btn" onClick={saveToServer}>
+            Save to Server
+          </button>
+          <button className="btn" onClick={loadFromServer}>
+            Load from Server
+          </button>
         </div>
       </header>
 
