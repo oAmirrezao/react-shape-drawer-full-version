@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const { Painting, User } = require('../models');
 
-// ذخیره یا بروزرسانی نقاشی
 router.post('/:userId', async (req, res) => {
   const { userId } = req.params;
   const { title, shapes } = req.body;
@@ -31,7 +30,6 @@ router.post('/:userId', async (req, res) => {
   }
 });
 
-// دریافت نقاشی
 router.get('/:userId', async (req, res) => {
   const { userId } = req.params;
   try {
@@ -46,7 +44,6 @@ router.get('/:userId', async (req, res) => {
   }
 });
 
-// (اختیاری) حذف نقاشی
 router.delete('/:userId', async (req, res) => {
   const { userId } = req.params;
   try {
