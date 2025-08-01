@@ -18,6 +18,10 @@
 npm install        # فقط یک‌بار
 npm run dev        # با concurrently هم backend و frontend را اجرا می‌کند
 ```
+اگر مورد بالا را نتوانستید اجرا کنید، هیچ اشکالی ندارد. به صورت جداگانه دستور زیر را در پوشه‌های mini_paint/server و mini_paint اجرا کنید:
+```bash
+npm start
+```
 
 - بک‌اند روی http://localhost:5000  
 - فرانت‌اند روی http://localhost:3000  
@@ -132,7 +136,7 @@ SELECT * FROM Paintings;
 
 ---
 
-## ۴) نکاتی برای آزمون‌های اتوماتیک (اختیاری)
+## ۴) نکاتی برای آزمون‌های اتوماتیک
 
 - بک‌اند: Jest + supertest  
   • تست POST `/users`  
@@ -143,4 +147,7 @@ SELECT * FROM Paintings;
 
 ---
 
-موفق باشید!
+تصاویر تست‌کردن آیتم‌های جدید(یعنی گزینه‌های save to server و load from server را می‌توانید در اینجا مشاهده بفرمایید.
+<img width="1855" height="962" alt="save_to_server_test1" src="https://github.com/user-attachments/assets/4e883e86-02fe-46b2-bc01-bf7a1b5ea429" />
+<img width="1857" height="963" alt="load_from_server1" src="https://github.com/user-attachments/assets/f776d433-9d4d-43eb-bfbc-161178e1edee" />
+
