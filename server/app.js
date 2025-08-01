@@ -15,7 +15,6 @@ const PORT = process.env.PORT || 5000;
 
 (async () => {
   try {
-    // با alter=true جداول آپدیت می‌شوند بدون حذف
     await sequelize.sync({ alter: true });
     console.log('Database synced');
     app.listen(PORT, () => console.log(`Server listening on http://localhost:${PORT}`));
